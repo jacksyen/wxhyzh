@@ -1,0 +1,39 @@
+<!-- Tutorial URL: http://sixrevisions.com/css/responsive-background-image/ -->
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>绑定推送邮箱</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="http://fonts.useso.com/css?family=Kotta+One|Cantarell:400,700" rel="stylesheet" type="text/css">
+    <!--[if lt IE 9]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+
+    <!-- Not required: presentational-only.css only contains CSS for prettifying the demo -->
+    <link rel="stylesheet" href="../static/presentational-only/presentational-only.css">
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- responsive-full-background-image.css stylesheet contains the code you want -->
+    <link rel="stylesheet" href="../static/css/responsive-full-background-image.css">
+
+    <!-- Not required: jquery.min.js and presentational-only.js is only used to demonstrate scrolling behavior of the viewport  -->
+    <script src="http://ajax.useso.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="../static/presentational-only/presentational-only.js"></script>
+    <style>
+        #mail-input{
+            border:2px solid;
+            border-radius:25px;
+        }
+    </style>
+</head>
+<body>
+<header class="container">
+    <section class="content">
+            <div class="alert alert-info" role="alert" style="color: #ffffff">{{ text }}</div>
+    </section>
+</header>
+</body>
+</html>

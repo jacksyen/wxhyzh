@@ -1,29 +1,45 @@
 __author__ = 'p'
 
 import xml.etree.ElementTree as ET
+import msgMaker
+import Util
+from flask import render_template
 # {
 # "button":[
 # {
 # "type":"click",
-#          "name":"热点文章",
+# "name":"热点文章",
 #          "key":"get_random_hot_article"
 #      }]
 # }
+BIND_EMAIL_EVENT = 'bind_email'
 
 # 用户关注处理函数
+
+
 def onUserSubscribed(msg):
-    return '欢迎关注环宇纵横！'
+    return msgMaker.textMsgMaker('''欢迎关注寰宇纵横！
+    寰宇纵横是一个提供电子书与热门文章的推送工具，
+    使用寰宇纵横可以搜索到全网的电子书，热门文章（目前支持新浪博客）并推送到你的kindle，邮箱。
+    ''', msg['ToUserName'], msg['FromUserName'])
 
 
 # 用户取消关注处理函数
 def onUserUnsubscribed(msg):
-    pass
+    return 'success'
 
 
 # 用户点击菜单处理函数
 def onMenuButtonClicked(msg):
-    pass
+    key = msg.get('EventKey', None)
+    if key is not None:
+        if key == BIND_EMAIL_EVENT:
+            longUrl = 'phomeserver.wicp.net/bindEmail?openid='+msg['FromUserName']
+            shortUrl = Util.getShortUrl(longUrl)
+            return msgMaker.textMsgMaker('请点击：\n'+shortUrl+'\n完成绑定邮箱', msg['ToUserName'], msg['FromUserName'])
 
+    else:
+        return msgMaker.textMsgMaker('点错了吧!', msg['ToUserName'], msg['FromUserName'])
 
 # 用户通过菜单跳转URL处理函数
 def onMenuUrlClicked(msg):
@@ -34,7 +50,7 @@ def onMenuUrlClicked(msg):
 
 # 接收普通消息处理函数
 def onReceiveTextMessage(msg):
-    return 'ok'
+    return msgMaker.textMsgMaker('你说的啥？', msg['ToUserName'], msg['FromUserName'])
 
 
 # 接收图片消息处理函数
@@ -68,7 +84,7 @@ def onReceiveLocationMessage(msg):
 
 
 EVENT_HANDLER_MAP = {
-    "subscribe": onReceiveTextMessage,
+    "subscribe": onUserSubscribed,
     "unsubscribe": onUserUnsubscribed,
     "CLICK": onMenuButtonClicked,
     "VIEW": onMenuUrlClicked,
@@ -89,9 +105,10 @@ def dispatchMsg(msg):
     xml = ET.fromstring(msg)
     for x in xml.getchildren():
         msgDict[x.tag] = x.text
-    if msgDict.get('MsgType', None) == 'event':
+    if msgDict.get('MsgType', '') == 'event':
         func = EVENT_HANDLER_MAP.get(msgDict['Event'])
-        func(msgDict)
+        print('event')
+        return func(msgDict)
     elif msgDict.get('MsgType', None) in NORMAL_MSG_HANDLER_MAP:
         func = NORMAL_MSG_HANDLER_MAP.get(msgDict['MsgType'])
-        func(msgDict)
+        return func(msgDict)
