@@ -2,6 +2,7 @@ __author__ = 'p'
 import requests
 import mysql.connector
 from bs4 import BeautifulSoup
+import re
 connection_config = {'user': 'root',
                      'password': '12345678',
                      'host': '127.0.0.1',
@@ -45,10 +46,10 @@ def searchBook(book):
     param = {
         'q': book
     }
+    #Cookie: a=; username=myjsy
     cookie = {
-        'a': '4748Xa1c9%252BztLj7CiVC%252Bi7Uz%252FrYBC7bcHsfjUKLEoR1BAsu2otRn0fZ9eLxuk9XiEqEri8cGuUxfNg0TZJXfGP6ZKEVanrdqjPXmkTOGAnM4bg',
-        'username': 'myjsy',
-        'category': 'all'
+        'a': '96273Ws23txhcfv%252Fo0Zzy7UQ72k1wual9SDg50EdhTiZqSQIQ%252BTehGAd16gBrJNX5Xpk6G8lmdb5KPd5ZSx3QQ18CYAHqEKGQwYCULLHOUOXPA',
+        'username': 'myjsy'
     }
     header = {
         'Host': 'www.mlook.mobi',
@@ -56,11 +57,17 @@ def searchBook(book):
         'Cache-Control': 'max-age=0',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36',
-        'Referer': 'https://www.mlook.mobi/search?q=%E5%A4%A9%E9%BE%99%E5%85%AB%E9%83%A8',
         'Accept-Encoding': 'gzip, deflate, sdch',
         'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6'
     }
     result = requests.get(url, params=param, cookies=cookie, headers=header)
-
+    print(result.text)
+    soup = BeautifulSoup(result.text, 'html5lib')
+    bookLink = soup.find('a', href=re.compile('^/book/info/'))
+    print(bookLink)
+    if bookLink is not None:
+        bookUrl = 'https://www.mlook.mobi'+bookLink['href']
+        r = requests.get(bookUrl, headers=header, cookies=cookie)
+        print(r.text)
 if __name__ == '__main__':
     searchBook('天龙八部')
