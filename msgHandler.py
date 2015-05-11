@@ -34,9 +34,12 @@ def onMenuButtonClicked(msg):
     key = msg.get('EventKey', None)
     if key is not None:
         if key == BIND_EMAIL_EVENT:
-            longUrl = 'phomeserver.wicp.net/bindEmail?openid='+msg['FromUserName']
-            shortUrl = Util.getShortUrl(longUrl)
-            return msgMaker.textMsgMaker('请点击：\n'+shortUrl+'\n完成绑定邮箱', msg['ToUserName'], msg['FromUserName'])
+            if Util.isUserEmailBinded(msg['FromUserName']):
+                return msgMaker.textMsgMaker('您已经绑定过了了邮箱！', msg['ToUserName'], msg['FromUserName'])
+            else:
+                longUrl = 'phomeserver.wicp.net/bindEmail?openid='+msg['FromUserName']
+                shortUrl = Util.getShortUrl(longUrl)
+                return msgMaker.textMsgMaker('请点击：\n'+shortUrl+'\n完成绑定邮箱', msg['ToUserName'], msg['FromUserName'])
 
     else:
         return msgMaker.textMsgMaker('点错了吧!', msg['ToUserName'], msg['FromUserName'])
@@ -50,7 +53,10 @@ def onMenuUrlClicked(msg):
 
 # 接收普通消息处理函数
 def onReceiveTextMessage(msg):
-    return msgMaker.textMsgMaker('你说的啥？', msg['ToUserName'], msg['FromUserName'])
+    if Util.isUserEmailBinded(msg['FromUserName']):
+        result = Util.searchBook(msg['Content'])
+    else:
+        return msgMaker.textMsgMaker('您尚未绑定推送邮箱！', msg['ToUserName'], msg['FromUserName'])
 
 
 # 接收图片消息处理函数

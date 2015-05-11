@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import request
 from flask import render_template
+import Util
 import msgHandler
 app = Flask(__name__)
 
@@ -29,6 +30,7 @@ def bindEmail():
         openid = request.form.get('openid', None)
         email = request.form.get('email', None)
         print(email, openid)
+        Util.bindUserEmail(openid, email)
         return render_template('resulthtml.html', text='绑定成功')
 
 if __name__ == '__main__':
