@@ -33,5 +33,15 @@ def bindEmail():
         Util.bindUserEmail(openid, email)
         return render_template('resulthtml.html', text='绑定成功')
 
+
+@app.route('/downloadBook', methods=['GET'])
+def downloadBook():
+    openid = request.args.get('openid', None)
+    downKey = request.args.get('down', None)
+    if openid is not None and downKey is not None:
+        if Util.isUserEmailBinded(openid):
+            pass
+
+
 if __name__ == '__main__':
     app.run(debug=True)
