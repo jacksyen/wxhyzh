@@ -55,6 +55,10 @@ def onMenuUrlClicked(msg):
 def onReceiveTextMessage(msg):
     if Util.isUserEmailBinded(msg['FromUserName']):
         result = Util.searchBook(msg['Content'])
+        info = str()
+        for x in result:
+            info += x.toString()
+        return msgMaker.textMsgMaker(info, msg['ToUserName'], msg['FromUserName'])
     else:
         return msgMaker.textMsgMaker('您尚未绑定推送邮箱！', msg['ToUserName'], msg['FromUserName'])
 
