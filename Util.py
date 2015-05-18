@@ -3,10 +3,12 @@ import requests
 import mysql.connector
 from bs4 import BeautifulSoup
 import re
-connection_config = {'user': 'lp',
+
+connection_config = {'user': 'root',
                      'password': '12345678',
-                     'host': 'awsmysql.c4nktcssczuj.ap-northeast-1.rds.amazonaws.com',
+                     'host': '127.0.0.1',
                      'database': 'wxhyzh'}
+
 
 class BookDownloadInfo(object):
     def __init__(self, furl, name, type, size):
@@ -15,10 +17,15 @@ class BookDownloadInfo(object):
         self.name = name
         self.type = type
         self.size = size
+        self.download_url = getShortUrl('phomeserver.wicp.net/downloadBook?down='+self.key)
+
     def __str__(self):
-        return '书名:'+self.name+'\n'+self.type+'\n相关信息:'+self.size+'\nkey:'+self.key
+        return '书名:' + self.name + '\n' + self.type + '\n相关信息:' + self.size + '\nkey:' + self.key
+
     def toString(self):
-        return '书名:'+self.name+'\n'+self.type+'\n相关信息:'+self.size
+        return '书名:' + self.name + '\n' + self.type + '\n相关信息:' + self.size+'\n点击推送:\n'+self.download_url+'\n'
+
+
 def getShortUrl(url):
     dburl = 'http://dwz.cn/create.php'
     data = {
@@ -28,6 +35,7 @@ def getShortUrl(url):
     json = r.json()
     print(json)
     return json['tinyurl']
+
 
 def bindUserEmail(openid, email):
     con = mysql.connector.connect(**connection_config)
@@ -49,6 +57,8 @@ def isUserEmailBinded(openid):
         return True
     else:
         return False
+
+
 def loginMlook():
     url = 'https://www.mlook.mobi/member/login'
     header = {
@@ -64,19 +74,24 @@ def loginMlook():
     }
     data = {
         'f': 'https://www.mlook.mobi/',
-        'formhash': '5c1d020b475366c1',
         'person[login]': '2309623743@qq.com',
         'person[password]': 'lipan1234',
         'person[remember_me]': '0',
         'commit': '登录',
-
     }
-    #session = requests.Session()
+    # session = requests.Session()
     s = requests.session()
+    r = s.get(url=url, headers=header)
+    soup = BeautifulSoup(r.text, 'html5lib')
+    fh = soup.find('input', {'name': 'formhash'})
+    if fh is not None:
+        data['formhash'] = fh['value']
+
     responese = s.post(url=url, headers=header, data=data, cookies=None)
-    print(responese.status_code)
-    print(responese.request.headers)
+    #print(responese.status_code)
+    #print(responese.request.headers)
     return s
+
 
 def searchBook(book):
     url = 'https://www.mlook.mobi/search'
@@ -97,12 +112,12 @@ def searchBook(book):
     s = loginMlook()
     result = s.get(url=url, params=param, headers=header)
     #print(result.text)
-    print(result.request.headers)
+    #print(result.request.headers)
     soup = BeautifulSoup(result.text, 'html5lib')
     bookLink = soup.find('a', href=re.compile('^/book/info/'))
     #print(bookLink)
     if bookLink is not None:
-        bookUrl = 'https://www.mlook.mobi'+bookLink['href']
+        bookUrl = 'https://www.mlook.mobi' + bookLink['href']
         header['Referer'] = result.url
         r = s.get(url=bookUrl, headers=header)
         #print(r.text)
@@ -115,11 +130,13 @@ def searchBook(book):
                 downloadLink = x.find('a', class_='download', rel='tipsy')
                 bookSizeInfo = x.find('span', class_='fs12 ffgeorgia')
                 stripInfo = bookSizeInfo.text.strip()
-                stripInfo = stripInfo[:stripInfo.find('推送')+2]
-                bookInfo = BookDownloadInfo(downloadLink['href'].strip(), downloadLink.text.strip(), downloadLink['original-title'].strip(), stripInfo)
+                stripInfo = stripInfo[:stripInfo.find('推送') + 2]
+                bookInfo = BookDownloadInfo(downloadLink['href'].strip(), downloadLink.text.strip(),
+                                            downloadLink['original-title'].strip(), stripInfo)
                 print(bookInfo)
                 bookInfos.append(bookInfo)
         return bookInfos
+
 
 if __name__ == '__main__':
     searchBook('天龙八部')

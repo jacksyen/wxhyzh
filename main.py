@@ -34,14 +34,15 @@ def bindEmail():
         return render_template('resulthtml.html', text='绑定成功')
 
 
-@app.route('/downloadBook', methods=['GET'])
+@app.route('/downloadBook', methods=['GET', 'POST'])
 def downloadBook():
-    openid = request.args.get('openid', None)
-    downKey = request.args.get('down', None)
-    if openid is not None and downKey is not None:
-        if Util.isUserEmailBinded(openid):
-            pass
-
+    if request.method == 'GET':
+        openid = request.args.get('openid', None)
+        if openid is not None:
+            if Util.isUserEmailBinded(openid):
+                return render_template('search_book.html', openid=openid)
+    elif request.method == 'POST':
+        pass
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>绑定推送邮箱</title>
+    <title>书籍搜索</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link href="http://fonts.useso.com/css?family=Kotta+One|Cantarell:400,700" rel="stylesheet" type="text/css">
 
@@ -28,9 +28,9 @@
 <body>
 <header class="container">
     <section class="content">
-            <form action="/bindEmail" method="POST">
+            <form action="/downloadBook" method="POST">
                 <div class="input-group input-group-lg" style="text-align: center;margin: auto">
-                    <input name="email" id="mail-input" type="text" class="form-control" placeholder="输入邮箱">
+                    <input name="down" id="mail-input" type="text" class="form-control" placeholder="输入书籍名">
                     <input name="openid" value="{{ openid }}" style="display: none">
                 </div>
                 <input type="submit" class="btn btn-lg btn-success" style="margin-top: 50px">
@@ -39,4 +39,7 @@
     </section>
 </header>
 </body>
+<script>
+
+</script>
 </html>
