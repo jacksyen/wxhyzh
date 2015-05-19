@@ -20,6 +20,7 @@ def requestReceiver():
         else:
             return ''
 
+
 @app.route('/bindEmail', methods=['POST', 'GET'])
 def bindEmail():
     if request.method == 'GET':
