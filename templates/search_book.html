@@ -16,28 +16,128 @@
     <link rel="stylesheet" href="../static/css/responsive-full-background-image.css">
 
     <!-- Not required: jquery.min.js and presentational-only.js is only used to demonstrate scrolling behavior of the viewport  -->
-    <script src="http://ajax.useso.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="../static/presentational-only/presentational-only.js"></script>
+
     <style>
-        #mail-input{
-            border:2px solid;
-            border-radius:25px;
+        #mail-input {
+            border: 2px solid;
+            border-radius: 25px;
+        }
+        .book-content{
+            display: table-cell;
+            vertical-align:30%;
+            text-align: center;
         }
     </style>
 </head>
 <body>
+<p id="openid" style="display: none">{{ openid }}</p>
 <header class="container">
-    <section class="content">
-                <div class="input-group input-group-lg" style="text-align: center;margin: auto">
-                    <input name="down" id="mail-input" type="text" class="form-control" placeholder="输入书籍名">
-                    <input name="openid" value="{{ openid }}" style="display: none">
-                </div>
-                <input id="submit_bt" type="button" class="btn btn-lg btn-success" style="margin-top: 50px">
+    <section id="before-section" class="content">
+        <p id="alert-text" style="display: none;color: red">请输入书籍名</p>
+
+        <div class="input-group input-group-lg" style="text-align: center;margin: auto">
+            <input name="down" id="mail-input" type="text" class="form-control" placeholder="输入书籍名">
+        </div>
+        <input id="submit_bt" value="搜索" type="button" class="btn btn-lg btn-success" style="margin-top: 50px">
+
+    </section>
+    <section id="loading-section" style="display:none;" class="content">
+        <p style="color: cornflowerblue">正在搜索</p>
+
+        <div class="progress" style="width: 40%;margin: 0 auto 0;border-radius: 15px">
+            <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar"
+                 aria-valuenow="40"
+                 aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                <span class="sr-only">40% Complete (success)</span>
+            </div>
+        </div>
+    </section>
+    <section id="after-section" style="display: none" class="book-content">
+        <div class="table-responsive">
+            <div class="panel panel-info">
+                <div class="panel-heading">书籍列表</div>
+                <table class="table table-striped">
+                    <tr id="table-model">
+                        <td id="book-name">
+                            书名
+                        </td>
+                        <td id="book-size">
+                            大小
+                        </td>
+                        <td id="book-type">
+                            类型
+                        </td>
+                        <td id="book-down">
+                            <button class="btn btn-success" style="display: none;">推送</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
 
     </section>
 </header>
+<!-- 点击推送后弹出的模态框 -->
+<div class="modal fade" id="pushModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+    <script src="http://ajax.useso.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="../static/presentational-only/presentational-only.js"></script>
 </body>
 <script>
-
+    $(document).ready(function () {
+        $('#submit_bt').click(function () {
+            var bookName = $('input[name=down]').val();
+            if (bookName.length > 0) {
+                $('#before-section').hide();
+                $('#loading-section').show();
+                var openid = $('#openid').text();
+                $.ajax({
+                    url: '/search',
+                    method: 'POST',
+                    data: {openid: openid, book: bookName},
+                    success: function (data) {
+                        $('#before-section').hide();
+                        $('#loading-section').hide();
+                        $('#after-section').show();
+                        var table_model = $('#table-model').clone();
+                        var books = data.books;
+                        //alert(books.length);
+                        for(var i=0;i < books.length; ++i){
+                            var table_model = $('#table-model').clone();
+                            table_model.find('#book-name').text(books[i].name);
+                            table_model.find('#book-size').text(books[i].size);
+                            table_model.find('#book-type').text(books[i].type);
+                            var button = table_model.find('#book-down').find('button');
+                            button.show();
+                            button.attr('down', books[i].book_key);
+                            button.on('click',pushBook);
+                            $('#table-model').after(table_model);
+                        }
+                    }
+                });
+            } else {
+                $('#alert-text').show();
+            }
+        })
+    });
+    function pushBook(){
+        $('#pushModal').modal('show');
+    }
 </script>
 </html>

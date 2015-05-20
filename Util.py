@@ -17,13 +17,16 @@ class BookDownloadInfo(object):
         self.name = name
         self.type = type
         self.size = size
-        self.download_url = getShortUrl('phomeserver.wicp.net/downloadBook?down='+self.key)
 
     def __str__(self):
         return '书名:' + self.name + '\n' + self.type + '\n相关信息:' + self.size + '\nkey:' + self.key
 
     def toString(self):
-        return '书名:' + self.name + '\n' + self.type + '\n相关信息:' + self.size+'\n点击推送:\n'+self.download_url+'\n'
+        return '书名:' + self.name + '\n' + self.type + '\n相关信息:' + self.size + '\n点击推送:\n' + self.download_url + '\n'
+
+    def toDict(self):
+        data = {'book_key': self.key, 'name': self.name, 'type': self.type, 'size': self.size}
+        return data
 
 
 def getShortUrl(url):
@@ -33,9 +36,11 @@ def getShortUrl(url):
     }
     r = requests.post(dburl, data=data)
     json = r.json()
-    print(json)
-    return json['tinyurl']
-
+    status = json['status']
+    if status == 0:
+        return json['tinyurl']
+    else:
+        return None
 
 def bindUserEmail(openid, email):
     con = mysql.connector.connect(**connection_config)
@@ -88,7 +93,7 @@ def loginMlook():
         data['formhash'] = fh['value']
 
     responese = s.post(url=url, headers=header, data=data, cookies=None)
-    #print(responese.status_code)
+    # print(responese.status_code)
     #print(responese.request.headers)
     return s
 
@@ -111,31 +116,33 @@ def searchBook(book):
     }
     s = loginMlook()
     result = s.get(url=url, params=param, headers=header)
-    #print(result.text)
+    # print(result.text)
     #print(result.request.headers)
     soup = BeautifulSoup(result.text, 'html5lib')
-    bookLink = soup.find('a', href=re.compile('^/book/info/'))
-    #print(bookLink)
+    booksDiv = soup.find('div', class_='books')
+    bookLink = booksDiv.find('a', href=re.compile('^/book/info/'))
+    print(bookLink)
+    bookInfos = []
     if bookLink is not None:
         bookUrl = 'https://www.mlook.mobi' + bookLink['href']
         header['Referer'] = result.url
         r = s.get(url=bookUrl, headers=header)
         #print(r.text)
-        print(r.request.headers)
+        #print(r.request.headers)
         soup = BeautifulSoup(r.text, 'html5lib')
         ebooks = soup.find_all('div', class_='ebook clearfix')
-        bookInfos = []
+
         if len(ebooks) > 0:
             for x in ebooks:
                 downloadLink = x.find('a', class_='download', rel='tipsy')
                 bookSizeInfo = x.find('span', class_='fs12 ffgeorgia')
                 stripInfo = bookSizeInfo.text.strip()
-                stripInfo = stripInfo[:stripInfo.find('推送') + 2]
+                stripInfo = stripInfo.split(' ')[0]+stripInfo.split(' ')[1]
                 bookInfo = BookDownloadInfo(downloadLink['href'].strip(), downloadLink.text.strip(),
-                                            downloadLink['original-title'].strip(), stripInfo)
-                print(bookInfo)
+                                            downloadLink['original-title'].strip().split('：')[1], stripInfo)
+                #print(bookInfo)
                 bookInfos.append(bookInfo)
-        return bookInfos
+    return bookInfos
 
 
 if __name__ == '__main__':
